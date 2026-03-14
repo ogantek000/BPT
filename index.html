@@ -670,21 +670,213 @@ button{-webkit-appearance:none;cursor:pointer;}
 
   <!-- MIDRANGE -->
   <div class="subh" style="margin-top:12px">📐 Midrange · /25 każda</div>
-  <div class="g3">
-    <div class="szc"><div class="szlbl">◀ Lewa strona</div><input class="szinp" type="number" id="mr1" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr1"></div></div><div class="szpct" id="zpctmr1">--</div></div>
-    <div class="szc"><div class="szlbl">▶ Prawa strona</div><input class="szinp" type="number" id="mr2" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr2"></div></div><div class="szpct" id="zpctmr2">--</div></div>
-    <div class="sumc"><div class="sulbl">Suma Midrange</div><div class="suval" id="mrSum">0<span class="supct">/ 50</span></div></div>
+  <div class="shoot-layout" id="mrLayout">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="g2">
+        <div class="szc"><div class="szlbl">◀ Lewa strona</div><input class="szinp" type="number" id="mr1" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr1"></div></div><div class="szpct" id="zpctmr1">--</div></div>
+        <div class="szc"><div class="szlbl">▶ Prawa strona</div><input class="szinp" type="number" id="mr2" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr2"></div></div><div class="szpct" id="zpctmr2">--</div></div>
+      </div>
+      <div class="sumc"><div class="sulbl">Suma Midrange</div><div class="suval" id="mrSum">0<span class="supct">/ 50</span></div></div>
+    </div>
+    <!-- MIDRANGE HEATMAP -->
+    <div class="hm-wrap" id="hmMRWrap">
+      <div class="hm-title">📐 Midrange Heatmap</div>
+      <svg class="court-svg" viewBox="0 0 300 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="300" height="220" rx="4" fill="rgba(6,3,0,0.85)"/>
+        <!-- grain lines -->
+        <line x1="0" y1="55" x2="300" y2="55" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="110" x2="300" y2="110" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="165" x2="300" y2="165" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <!-- court outline -->
+        <rect x="8" y="8" width="284" height="170" rx="3" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none"/>
+        <!-- paint -->
+        <rect x="108" y="8" width="84" height="110" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" fill="rgba(255,107,0,0.05)"/>
+        <!-- FT circle -->
+        <circle cx="150" cy="118" r="30" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" fill="none"/>
+        <!-- 3PT arc dashed (boundary reference) -->
+        <path d="M 23 178 L 23 130 Q 23 14 150 14 Q 277 14 277 130 L 277 178" stroke="rgba(255,255,255,0.14)" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+        <!-- basket -->
+        <rect x="130" y="10" width="40" height="6" rx="1" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="150" y1="16" x2="150" y2="22" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        <circle cx="150" cy="26" r="8" fill="none" stroke="#FF6B00" stroke-width="2.2"/>
+        <circle cx="150" cy="26" r="3.5" fill="rgba(255,107,0,0.3)"/>
+        <!-- MIDRANGE ZONES: lewa i prawa strona wewnątrz łuku 3PT a poza paint -->
+        <!-- Lewa strona midrange -->
+        <path id="mrhz1" class="hz" d="M 8 8 L 108 8 L 108 118 Q 80 110 50 90 Q 23 70 23 40 L 23 8 Z" fill="rgba(50,50,50,0.45)"/>
+        <!-- Prawa strona midrange -->
+        <path id="mrhz2" class="hz" d="M 192 8 L 292 8 L 292 40 Q 277 70 250 90 Q 220 110 192 118 Z" fill="rgba(50,50,50,0.45)"/>
+        <!-- FT zone (środek, paint) -->
+        <path id="mrhzFT" class="hz" d="M 108 8 L 192 8 L 192 118 Q 150 100 108 118 Z" fill="rgba(50,50,50,0.22)"/>
+        <!-- labels -->
+        <text id="mrht1" class="zpct" x="58" y="75">—</text>
+        <text id="mrht2" class="zpct" x="242" y="75">—</text>
+        <text id="mrhtFT" class="zpct" x="150" y="72">—</text>
+        <text x="58" y="156" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">MIDRANGE L</text>
+        <text x="242" y="156" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">MIDRANGE R</text>
+        <text x="150" y="156" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">PAINT / FT</text>
+        <text x="150" y="204" text-anchor="middle" font-family="Teko,sans-serif" font-size="9" fill="rgba(255,107,0,0.4)" letter-spacing="3">MIDRANGE CHART</text>
+      </svg>
+      <div class="hm-leg">
+        <div class="hml"><div class="hmld" style="background:rgba(57,255,20,0.8)"></div><span class="hmll">&gt;60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,210,0,0.8)"></div><span class="hmll">40-60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,107,0,0.8)"></div><span class="hmll">25-40%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,59,59,0.8)"></div><span class="hmll">&lt;25%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(70,70,70,0.6)"></div><span class="hmll">Brak</span></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- ════ 05 FINISHING ════ -->
 <div class="sec">
   <div class="sh"><div class="sn">05</div><div class="st">Finishing</div><div class="sl"></div></div>
-  <div class="g4">
-    <div class="card"><div class="cl">🤜 Layup prawa</div><input type="number" id="layR" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layRBar" style="width:0%"></div></div></div>
-    <div class="card"><div class="cl">🤛 Layup lewa</div><input type="number" id="layL" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layLBar" style="width:0%"></div></div></div>
-    <div class="card"><div class="cl">💨 Drive finish</div><input type="number" id="drive" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="driveBar" style="width:0%"></div></div></div>
-    <div class="card"><div class="cl">🎈 Floater</div><input type="number" id="floater" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="floaterBar" style="width:0%"></div></div></div>
+  <div class="shoot-layout" id="finLayout">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="g2">
+        <div class="card"><div class="cl">🤜 Layup prawa</div><input type="number" id="layR" min="0" max="25" placeholder="0" oninput="updateFinishHeatmap();calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layRBar" style="width:0%"></div></div></div>
+        <div class="card"><div class="cl">🤛 Layup lewa</div><input type="number" id="layL" min="0" max="25" placeholder="0" oninput="updateFinishHeatmap();calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layLBar" style="width:0%"></div></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="cl">💨 Drive finish</div><input type="number" id="drive" min="0" max="25" placeholder="0" oninput="updateFinishHeatmap();calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="driveBar" style="width:0%"></div></div></div>
+        <div class="card"><div class="cl">🎈 Floater</div><input type="number" id="floater" min="0" max="25" placeholder="0" oninput="updateFinishHeatmap();calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="floaterBar" style="width:0%"></div></div></div>
+      </div>
+    </div>
+    <!-- FINISHING HEATMAP -->
+    <div class="hm-wrap" id="hmFinWrap">
+      <div class="hm-title">🤜 Finishing Heatmap</div>
+      <svg class="court-svg" viewBox="0 0 300 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="300" height="220" rx="4" fill="rgba(6,3,0,0.85)"/>
+        <line x1="0" y1="55" x2="300" y2="55" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="110" x2="300" y2="110" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="165" x2="300" y2="165" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <!-- court outline -->
+        <rect x="8" y="8" width="284" height="170" rx="3" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none"/>
+        <!-- paint -->
+        <rect x="108" y="8" width="84" height="110" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" fill="rgba(74,168,255,0.04)"/>
+        <!-- paint lane lines -->
+        <line x1="108" y1="60" x2="192" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <line x1="108" y1="80" x2="192" y2="80" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <!-- FT circle -->
+        <circle cx="150" cy="118" r="30" stroke="rgba(255,255,255,0.14)" stroke-width="1.2" fill="none"/>
+        <!-- restricted area arc -->
+        <path d="M 133 8 a 17 17 0 0 1 34 0" stroke="rgba(74,168,255,0.2)" stroke-width="1.2" fill="none"/>
+        <!-- basket -->
+        <rect x="130" y="10" width="40" height="6" rx="1" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="150" y1="16" x2="150" y2="22" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        <circle cx="150" cy="26" r="8" fill="none" stroke="#FF6B00" stroke-width="2.2"/>
+        <circle cx="150" cy="26" r="3.5" fill="rgba(255,107,0,0.3)"/>
+        <!-- FINISHING ZONES -->
+        <!-- Layup prawa (prawa strona paint, bliżej kosza) -->
+        <path id="finhz_layR" class="hz" d="M 150 8 L 192 8 L 192 60 Q 167 40 150 34 Z" fill="rgba(50,50,50,0.5)"/>
+        <!-- Layup lewa (lewa strona paint, bliżej kosza) -->
+        <path id="finhz_layL" class="hz" d="M 108 8 L 150 8 L 150 34 Q 133 40 108 60 Z" fill="rgba(50,50,50,0.5)"/>
+        <!-- Drive finish (dolna część paint, środek) -->
+        <path id="finhz_drive" class="hz" d="M 108 60 L 192 60 L 192 118 Q 150 100 108 118 Z" fill="rgba(50,50,50,0.45)"/>
+        <!-- Floater (środkowy obszar między paint a łukiem) -->
+        <path id="finhz_floater" class="hz" d="M 80 8 L 108 8 L 108 118 Q 90 108 70 90 Q 50 72 50 50 L 80 8 Z M 220 8 L 250 8 L 250 50 Q 250 72 230 90 Q 210 108 192 118 L 192 8 Z" fill="rgba(50,50,50,0.45)"/>
+        <!-- labels -->
+        <text id="finht_layR" class="zpct" x="175" y="30">—</text>
+        <text id="finht_layL" class="zpct" x="127" y="30">—</text>
+        <text id="finht_drive" class="zpct" x="150" y="92">—</text>
+        <text id="finht_floater" class="zpct" x="150" y="55">—</text>
+        <!-- zone name labels -->
+        <text x="175" y="50" text-anchor="middle" font-family="Teko,sans-serif" font-size="6.5" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">LAYUP P</text>
+        <text x="125" y="50" text-anchor="middle" font-family="Teko,sans-serif" font-size="6.5" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">LAYUP L</text>
+        <text x="150" y="110" text-anchor="middle" font-family="Teko,sans-serif" font-size="6.5" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">DRIVE</text>
+        <text x="150" y="67" text-anchor="middle" font-family="Teko,sans-serif" font-size="6.5" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">FLOATER</text>
+        <text x="150" y="204" text-anchor="middle" font-family="Teko,sans-serif" font-size="9" fill="rgba(74,168,255,0.5)" letter-spacing="3">FINISHING CHART</text>
+      </svg>
+      <div class="hm-leg">
+        <div class="hml"><div class="hmld" style="background:rgba(57,255,20,0.8)"></div><span class="hmll">&gt;60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,210,0,0.8)"></div><span class="hmll">40-60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,107,0,0.8)"></div><span class="hmll">25-40%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,59,59,0.8)"></div><span class="hmll">&lt;25%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(70,70,70,0.6)"></div><span class="hmll">Brak</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ OVERALL SHOT CHART ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn" style="color:rgba(255,107,0,0.18)">★</div><div class="st">Overall Shot Chart</div><div class="sl"></div></div>
+  <div class="hm-wrap" id="hmOverallWrap" style="width:100%;">
+    <div class="hm-title">🗺 Overall Shot Chart — wszystkie strefy</div>
+    <svg class="court-svg" style="max-width:500px;" viewBox="0 0 480 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="480" height="320" rx="4" fill="rgba(6,3,0,0.88)"/>
+      <line x1="0" y1="64" x2="480" y2="64" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+      <line x1="0" y1="128" x2="480" y2="128" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+      <line x1="0" y1="192" x2="480" y2="192" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+      <line x1="0" y1="256" x2="480" y2="256" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+      <rect x="10" y="10" width="460" height="260" rx="3" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none"/>
+      <rect x="172" y="10" width="136" height="152" stroke="rgba(255,255,255,0.15)" stroke-width="1.2" fill="rgba(255,107,0,0.04)"/>
+      <line x1="172" y1="92" x2="308" y2="92" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+      <line x1="172" y1="118" x2="308" y2="118" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+      <circle cx="240" cy="162" r="44" stroke="rgba(255,255,255,0.14)" stroke-width="1.2" fill="none"/>
+      <path d="M 196 162 a 44 44 0 0 0 88 0" fill="rgba(255,255,255,0.025)" stroke="none"/>
+      <path d="M 214 10 a 26 26 0 0 1 52 0" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/>
+      <rect x="207" y="14" width="66" height="9" rx="1" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+      <rect x="221" y="15" width="38" height="7" rx="0.5" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/>
+      <line x1="240" y1="23" x2="240" y2="34" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+      <circle cx="240" cy="42" r="13" fill="none" stroke="#FF6B00" stroke-width="2.5"/>
+      <line x1="230" y1="55" x2="227" y2="70" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <line x1="235" y1="55" x2="233" y2="70" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <line x1="240" y1="55" x2="240" y2="70" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <line x1="245" y1="55" x2="247" y2="70" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <line x1="250" y1="55" x2="253" y2="70" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      <path d="M 227 70 Q 240 78 253 70" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+      <circle cx="240" cy="42" r="6" fill="rgba(255,107,0,0.3)"/>
+      <path d="M 36 270 L 36 198 Q 36 22 240 22 Q 444 22 444 198 L 444 270" stroke="rgba(255,255,255,0.22)" stroke-width="1.4" fill="none" stroke-dasharray="5,3"/>
+      <line x1="10" y1="198" x2="36" y2="198" stroke="rgba(255,255,255,0.18)" stroke-width="1.4"/>
+      <line x1="444" y1="198" x2="470" y2="198" stroke="rgba(255,255,255,0.18)" stroke-width="1.4"/>
+      <!-- OVERALL HEAT ZONES -->
+      <path id="ovhz_c1" class="hz" d="M 10 198 L 10 270 L 36 270 L 36 198 Z" fill="rgba(50,50,50,0.4)"/>
+      <path id="ovhz_w2" class="hz" d="M 10 108 L 10 198 L 36 198 Q 36 148 76 118 L 58 108 Z" fill="rgba(50,50,50,0.4)"/>
+      <path id="ovhz_t3" class="hz" d="M 100 10 L 380 10 Q 444 22 444 100 L 406 98 Q 376 26 240 26 Q 104 26 74 98 L 36 100 Q 36 22 100 10 Z" fill="rgba(50,50,50,0.4)"/>
+      <path id="ovhz_w4" class="hz" d="M 470 198 L 470 108 L 422 108 L 404 118 Q 444 148 444 198 Z" fill="rgba(50,50,50,0.4)"/>
+      <path id="ovhz_c5" class="hz" d="M 444 270 L 470 270 L 470 198 L 444 198 Z" fill="rgba(50,50,50,0.4)"/>
+      <path id="ovhz_mr1" class="hz" d="M 10 10 L 172 10 L 172 162 Q 130 150 90 120 Q 36 88 36 50 L 36 10 Z" fill="rgba(50,50,50,0.38)"/>
+      <path id="ovhz_mr2" class="hz" d="M 308 10 L 470 10 L 470 50 Q 444 88 390 120 Q 350 150 308 162 Z" fill="rgba(50,50,50,0.38)"/>
+      <path id="ovhz_ft" class="hz" d="M 172 10 L 308 10 L 308 162 Q 240 138 172 162 Z" fill="rgba(50,50,50,0.28)"/>
+      <path id="ovhz_layL" class="hz" d="M 172 10 L 240 10 L 240 46 Q 214 54 172 80 Z" fill="rgba(50,50,50,0.55)"/>
+      <path id="ovhz_layR" class="hz" d="M 240 10 L 308 10 L 308 80 Q 266 54 240 46 Z" fill="rgba(50,50,50,0.55)"/>
+      <path id="ovhz_drive" class="hz" d="M 172 80 L 308 80 L 308 162 Q 240 142 172 162 Z" fill="rgba(50,50,50,0.5)"/>
+      <path id="ovhz_float" class="hz" d="M 36 10 L 172 10 L 172 162 Q 148 155 120 140 Q 90 120 70 98 L 36 100 Z M 308 10 L 444 10 L 444 100 L 410 98 Q 390 120 360 140 Q 332 155 308 162 Z" fill="rgba(50,50,50,0.45)"/>
+      <!-- zone % labels -->
+      <text id="ovht_c1" class="zpct" x="23" y="234">—</text>
+      <text id="ovht_w2" class="zpct" x="23" y="155">—</text>
+      <text id="ovht_t3" class="zpct" x="240" y="58">—</text>
+      <text id="ovht_w4" class="zpct" x="457" y="155">—</text>
+      <text id="ovht_c5" class="zpct" x="457" y="234">—</text>
+      <text id="ovht_mr1" class="zpct" x="90" y="100">—</text>
+      <text id="ovht_mr2" class="zpct" x="390" y="100">—</text>
+      <text id="ovht_ft" class="zpct" x="240" y="115">—</text>
+      <text id="ovht_layL" class="zpct" x="205" y="42">—</text>
+      <text id="ovht_layR" class="zpct" x="275" y="42">—</text>
+      <text id="ovht_drive" class="zpct" x="240" y="132">—</text>
+      <text id="ovht_float" class="zpct" x="240" y="78">—</text>
+      <!-- zone name labels -->
+      <text x="23" y="258" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">CRN L</text>
+      <text x="23" y="190" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">WING L</text>
+      <text x="240" y="76" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">TOP 3PT</text>
+      <text x="457" y="190" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">WING R</text>
+      <text x="457" y="258" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.25)" letter-spacing="0.5">CRN R</text>
+      <text x="90" y="120" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">MID L</text>
+      <text x="390" y="120" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">MID R</text>
+      <text x="240" y="130" text-anchor="middle" font-family="Teko,sans-serif" font-size="6" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">FT / PAINT</text>
+      <text x="205" y="60" text-anchor="middle" font-family="Teko,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">LAY L</text>
+      <text x="275" y="60" text-anchor="middle" font-family="Teko,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">LAY R</text>
+      <text x="240" y="148" text-anchor="middle" font-family="Teko,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">DRIVE</text>
+      <text x="240" y="92" text-anchor="middle" font-family="Teko,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.22)" letter-spacing="0.5">FLOATER</text>
+      <text x="240" y="305" text-anchor="middle" font-family="Teko,sans-serif" font-size="9" fill="rgba(255,107,0,0.45)" letter-spacing="3">OVERALL SHOT CHART</text>
+    </svg>
+    <div class="hm-leg">
+      <div class="hml"><div class="hmld" style="background:rgba(57,255,20,0.8)"></div><span class="hmll">&gt;60%</span></div>
+      <div class="hml"><div class="hmld" style="background:rgba(255,210,0,0.8)"></div><span class="hmll">40-60%</span></div>
+      <div class="hml"><div class="hmld" style="background:rgba(255,107,0,0.8)"></div><span class="hmll">25-40%</span></div>
+      <div class="hml"><div class="hmld" style="background:rgba(255,59,59,0.8)"></div><span class="hmll">&lt;25%</span></div>
+      <div class="hml"><div class="hmld" style="background:rgba(70,70,70,0.6)"></div><span class="hmll">Brak</span></div>
+    </div>
   </div>
 </div>
 
@@ -739,22 +931,52 @@ const CMPF=[{id:'vertJump',l:'Vertical',u:'cm',lib:false},{id:'sprint20',l:'Spri
 
 // Przeniesienie heatmapy na mobile (poniżej sekcji 3PT)
 function repositionHeatmap(){
+  // 3PT heatmap
   const hm=document.getElementById('hmWrap');
   const shootLayout=document.querySelector('.shoot-layout');
-  if(!hm||!shootLayout)return;
-  if(window.innerWidth<=820){
-    // Umieść heatmapę po shoot-layout jako osobny blok
-    if(hm.parentElement===shootLayout){
-      shootLayout.parentElement.insertBefore(hm,shootLayout.nextSibling);
-      hm.style.marginBottom='12px';
-      hm.style.marginTop='8px';
+  if(hm&&shootLayout){
+    if(window.innerWidth<=820){
+      if(hm.parentElement===shootLayout){
+        shootLayout.parentElement.insertBefore(hm,shootLayout.nextSibling);
+        hm.style.marginBottom='12px';hm.style.marginTop='8px';
+      }
+    } else {
+      if(hm.parentElement!==shootLayout){
+        shootLayout.appendChild(hm);
+        hm.style.marginBottom='';hm.style.marginTop='';
+      }
     }
-  } else {
-    // Wróć do shoot-layout
-    if(hm.parentElement!==shootLayout){
-      shootLayout.appendChild(hm);
-      hm.style.marginBottom='';
-      hm.style.marginTop='';
+  }
+  // Midrange heatmap
+  const hmMR=document.getElementById('hmMRWrap');
+  const mrLayout=document.getElementById('mrLayout');
+  if(hmMR&&mrLayout){
+    if(window.innerWidth<=820){
+      if(hmMR.parentElement===mrLayout){
+        mrLayout.parentElement.insertBefore(hmMR,mrLayout.nextSibling);
+        hmMR.style.marginBottom='12px';hmMR.style.marginTop='8px';
+      }
+    } else {
+      if(hmMR.parentElement!==mrLayout){
+        mrLayout.appendChild(hmMR);
+        hmMR.style.marginBottom='';hmMR.style.marginTop='';
+      }
+    }
+  }
+  // Finishing heatmap
+  const hmFin=document.getElementById('hmFinWrap');
+  const finLayout=document.getElementById('finLayout');
+  if(hmFin&&finLayout){
+    if(window.innerWidth<=820){
+      if(hmFin.parentElement===finLayout){
+        finLayout.parentElement.insertBefore(hmFin,finLayout.nextSibling);
+        hmFin.style.marginBottom='12px';hmFin.style.marginTop='8px';
+      }
+    } else {
+      if(hmFin.parentElement!==finLayout){
+        finLayout.appendChild(hmFin);
+        hmFin.style.marginBottom='';hmFin.style.marginTop='';
+      }
     }
   }
 }
@@ -813,21 +1035,88 @@ function calcTP(){
     styleZoneCard(i+1,pct);
   });
   document.getElementById('tpSum').innerHTML=sum+'<span class="supct">/ 125</span>';
+  updateOverallHeatmap();
   calcOverall();
 }
 
 function calcMR(){
+  const vals=[];
   ['mr1','mr2'].forEach((id,i)=>{
     const raw=document.getElementById(id).value;const has=raw!=='';const v=parseInt(raw)||0;
     const pct=has?v/25:null;
+    vals.push({pct,has,v});
     const bar=document.getElementById('zpbmr'+(i+1));
     if(bar){bar.style.width=has?Math.min(100,v/25*100)+'%':'0%';bar.style.background=has?barColor(pct):'rgba(255,255,255,0.06)';}
     const pe=document.getElementById('zpctmr'+(i+1));
     if(pe){pe.textContent=has?Math.round(v/25*100)+'%':'--'; pe.style.color=has?pctColor(pct):'var(--mu)';}
+    // midrange heatmap zones
+    const hzId=['mrhz1','mrhz2'][i];
+    const htId=['mrht1','mrht2'][i];
+    const hzEl=document.getElementById(hzId);
+    const htEl=document.getElementById(htId);
+    if(hzEl)hzEl.setAttribute('fill',heatColor(pct));
+    if(htEl){htEl.textContent=has?Math.round(v/25*100)+'%':'—';htEl.setAttribute('fill',has?barColor(pct):'rgba(255,255,255,0.35)');}
   });
+  // FT zone on midrange heatmap (mirrors main FT)
+  const ftRaw=document.getElementById('ft').value;const ftHas=ftRaw!=='';const ftV=parseInt(ftRaw)||0;
+  const ftPct=ftHas?ftV/25:null;
+  const mrhzFT=document.getElementById('mrhzFT');const mrhtFT=document.getElementById('mrhtFT');
+  if(mrhzFT)mrhzFT.setAttribute('fill',heatColor(ftPct));
+  if(mrhtFT){mrhtFT.textContent=ftHas?Math.round(ftV/25*100)+'%':'—';mrhtFT.setAttribute('fill',ftHas?barColor(ftPct):'rgba(255,255,255,0.35)');}
   const s=(parseInt(document.getElementById('mr1').value)||0)+(parseInt(document.getElementById('mr2').value)||0);
   document.getElementById('mrSum').innerHTML=s+'<span class="supct">/ 50</span>';
+  updateOverallHeatmap();
   calcOverall();
+}
+
+// ——— FINISHING HEATMAP ———
+function updateFinishHeatmap(){
+  const zones=[
+    {id:'layR', hzId:'finhz_layR', htId:'finht_layR'},
+    {id:'layL', hzId:'finhz_layL', htId:'finht_layL'},
+    {id:'drive', hzId:'finhz_drive', htId:'finht_drive'},
+    {id:'floater', hzId:'finhz_floater', htId:'finht_floater'},
+  ];
+  zones.forEach(z=>{
+    const raw=document.getElementById(z.id).value;const has=raw!=='';const v=parseInt(raw)||0;
+    const pct=has?v/25:null;
+    const hzEl=document.getElementById(z.hzId);
+    const htEl=document.getElementById(z.htId);
+    if(hzEl)hzEl.setAttribute('fill',heatColor(pct));
+    if(htEl){htEl.textContent=has?Math.round(v/25*100)+'%':'—';htEl.setAttribute('fill',has?barColor(pct):'rgba(255,255,255,0.35)');}
+  });
+  updateOverallHeatmap();
+}
+
+// ——— OVERALL HEATMAP ———
+function updateOverallHeatmap(){
+  const getP=(id,max)=>{const raw=document.getElementById(id).value;return raw!==''?(parseInt(raw)||0)/max:null;};
+  const zones=[
+    {hzId:'ovhz_c1', htId:'ovht_c1', pct:getP('tp1',25)},
+    {hzId:'ovhz_w2', htId:'ovht_w2', pct:getP('tp2',25)},
+    {hzId:'ovhz_t3', htId:'ovht_t3', pct:getP('tp3',25)},
+    {hzId:'ovhz_w4', htId:'ovht_w4', pct:getP('tp4',25)},
+    {hzId:'ovhz_c5', htId:'ovht_c5', pct:getP('tp5',25)},
+    {hzId:'ovhz_mr1', htId:'ovht_mr1', pct:getP('mr1',25)},
+    {hzId:'ovhz_mr2', htId:'ovht_mr2', pct:getP('mr2',25)},
+    {hzId:'ovhz_ft', htId:'ovht_ft', pct:getP('ft',25)},
+    {hzId:'ovhz_layL', htId:'ovht_layL', pct:getP('layL',25)},
+    {hzId:'ovhz_layR', htId:'ovht_layR', pct:getP('layR',25)},
+    {hzId:'ovhz_drive', htId:'ovht_drive', pct:getP('drive',25)},
+    {hzId:'ovhz_float', htId:'ovht_float', pct:(()=>{
+      const fRaw=document.getElementById('floater').value;
+      return fRaw!==''?(parseInt(fRaw)||0)/25:null;
+    })()},
+  ];
+  zones.forEach(z=>{
+    const hzEl=document.getElementById(z.hzId);
+    const htEl=document.getElementById(z.htId);
+    if(hzEl)hzEl.setAttribute('fill',heatColor(z.pct));
+    if(htEl){
+      htEl.textContent=z.pct!==null?Math.round(z.pct*100)+'%':'—';
+      htEl.setAttribute('fill',z.pct!==null?barColor(z.pct):'rgba(255,255,255,0.35)');
+    }
+  });
 }
 
 function updateFT(){
@@ -847,6 +1136,11 @@ function updateFT(){
   if(hzFT)hzFT.setAttribute('fill',heatColor(pct));
   const htFT=document.getElementById('htFT');
   if(htFT){htFT.textContent=pp!==null?pp+'%':'—';htFT.setAttribute('fill',pct!==null?barColor(pct):'rgba(255,255,255,0.35)');}
+  // sync FT to midrange heatmap + overall
+  const mrhzFT=document.getElementById('mrhzFT');const mrhtFT=document.getElementById('mrhtFT');
+  if(mrhzFT)mrhzFT.setAttribute('fill',heatColor(pct));
+  if(mrhtFT){mrhtFT.textContent=pp!==null?pp+'%':'—';mrhtFT.setAttribute('fill',pct!==null?barColor(pct):'rgba(255,255,255,0.35)');}
+  updateOverallHeatmap();
 }
 
 function updateVJump(){
@@ -988,6 +1282,7 @@ function fill(data){
   FIELDS.forEach(id=>{const el=document.getElementById(id);if(el&&data[id]!==undefined)el.value=data[id];});
   calcTP();calcMR();updateFT();updateVJump();updateSprint();updateRebound();
   updateDrib('drib30R','dribDotsR',80);updateDrib('drib30L','dribDotsL',80);
+  updateFinishHeatmap();updateOverallHeatmap();
   updateSB();
 }
 function renderSel(){
@@ -1041,7 +1336,7 @@ window.addEventListener('load',()=>{
   updateDrib('drib30L','dribDotsL',80);
   updateRebound();
   document.getElementById('date').value=new Date().toISOString().split('T')[0];
-  renderSel();calcOverall();updateSB();updateFT();
+  renderSel();calcOverall();updateSB();updateFT();updateFinishHeatmap();updateOverallHeatmap();
   repositionHeatmap();
   setTimeout(()=>{document.getElementById('loader').classList.add('hide');},900);
 });

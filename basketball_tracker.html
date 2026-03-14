@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basketball Progress Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#FF6B00;--or2:#FFA040;--or3:#FFD080;
+  --gr:#39FF14;--rd:#FF3B3B;--bl:#4AA8FF;--yw:#FFD54F;
+  --wh:#F0EAE0;--mu:rgba(240,234,224,0.42);--mu2:rgba(240,234,224,0.2);
+  --dk:#0d0d0d;--pn:rgba(14,8,0,0.9);--pn2:rgba(24,12,0,0.78);
+  --bd:rgba(255,107,0,0.28);--bd2:rgba(255,107,0,0.13);
+  --floor:#c8843a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background-color:var(--floor);
+  background-image:
+    repeating-linear-gradient(90deg,transparent,transparent 119px,rgba(0,0,0,0.055) 119px,rgba(0,0,0,0.055) 120px),
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(0,0,0,0.038) 39px,rgba(0,0,0,0.038) 40px),
+    linear-gradient(170deg,#b07028 0%,#c8843a 40%,#d4904a 65%,#b87030 100%);
+  min-height:100vh;font-family:'Roboto Condensed',sans-serif;color:var(--wh);overflow-x:hidden;
+}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 800px 350px at 50% 0%,rgba(255,255,255,0.06) 0%,transparent 70%),
+             radial-gradient(ellipse 100% 200px at 50% 100%,rgba(0,0,0,0.3) 0%,transparent 70%);}
+.court-circle{position:fixed;width:320px;height:320px;border:2px solid rgba(255,255,255,0.11);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;}
+.court-circle::after{content:'';position:absolute;width:38px;height:38px;border:2px solid rgba(255,255,255,0.11);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.court-line-h{position:fixed;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,0.1);pointer-events:none;z-index:0;}
+
+/* ——— BOUNCING BALL LOADER ——— */
+.ball-loader{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:var(--dk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s;}
+.ball-loader.hide{opacity:0;pointer-events:none;}
+.ball-bounce{width:42px;height:42px;background:radial-gradient(circle at 35% 35%,#ff9040,#FF6B00 60%,#c04000);border-radius:50%;animation:bounce 0.6s cubic-bezier(.36,.07,.19,.97) infinite alternate;filter:drop-shadow(0 0 14px rgba(255,107,0,0.6));}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-36px);}}
+.ball-shadow{width:42px;height:8px;background:rgba(0,0,0,0.5);border-radius:50%;animation:shadow 0.6s cubic-bezier(.36,.07,.19,.97) infinite alternate;margin-top:-4px;}
+@keyframes shadow{from{transform:scaleX(1);opacity:.5;}to{transform:scaleX(.4);opacity:.15;}}
+.ball-loader-txt{font-family:'Teko',sans-serif;letter-spacing:6px;font-size:0.75rem;text-transform:uppercase;color:rgba(255,107,0,0.7);}
+
+/* ——— SCOREBOARD ——— */
+.sb{background:var(--dk);margin:0;border-bottom:4px solid var(--or);box-shadow:0 8px 50px rgba(0,0,0,0.7);position:relative;overflow:hidden;z-index:50;}
+.sb::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px);pointer-events:none;}
+.sb-top{display:flex;align-items:stretch;min-height:88px;border-bottom:1px solid rgba(255,107,0,0.18);}
+.sb-logo{display:flex;align-items:center;justify-content:center;padding:0 24px;border-right:1px solid rgba(255,107,0,0.18);flex-shrink:0;cursor:pointer;}
+.sb-logo svg{width:50px;height:50px;filter:drop-shadow(0 0 14px rgba(255,107,0,0.5));transition:transform .3s;}
+.sb-logo:hover svg{transform:rotate(20deg) scale(1.1);}
+.sb-title{flex:1;padding:14px 24px;display:flex;flex-direction:column;justify-content:center;}
+.sb-eye{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:5px;text-transform:uppercase;color:var(--or);margin-bottom:0;}
+.sb-h1{font-family:'Teko',sans-serif;font-size:2.5rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1;text-shadow:0 0 30px rgba(255,107,0,0.22);}
+.sb-panels{display:flex;border-left:1px solid rgba(255,107,0,0.18);}
+.sb-cell{padding:8px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid rgba(255,107,0,0.1);min-width:80px;}
+.sb-cell:last-child{border-right:none;}
+.sbcl{font-family:'Teko',sans-serif;font-size:0.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--or);margin-bottom:1px;}
+.sbcv{font-family:'Teko',sans-serif;font-size:2.1rem;font-weight:600;line-height:1;letter-spacing:1px;text-align:center;min-width:50px;transition:all .3s;}
+.led{color:var(--gr);text-shadow:0 0 10px rgba(57,255,20,0.5);}
+.led-o{color:#FFB040;text-shadow:0 0 10px rgba(255,160,60,0.5);}
+.sb-ticker{display:flex;align-items:center;gap:22px;padding:8px 24px;flex-wrap:wrap;}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--or);animation:blink 2s ease-in-out infinite;flex-shrink:0;}
+.tdot.g{background:var(--gr);box-shadow:0 0 5px rgba(57,255,20,0.5);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.22;}}
+.tlbl{font-family:'Teko',sans-serif;font-size:0.68rem;letter-spacing:2px;color:var(--mu);text-transform:uppercase;}
+.tval{font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:1px;}
+.titem{display:flex;align-items:center;gap:6px;}
+
+/* ——— WRAP ——— */
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+
+/* ——— OVERALL ——— */
+.ov-card{
+  background:linear-gradient(135deg,rgba(14,8,0,0.97) 0%,rgba(28,12,0,0.92) 100%);
+  border:1px solid var(--bd);border-radius:6px;padding:20px 26px;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;
+  box-shadow:0 4px 40px rgba(0,0,0,0.5);position:relative;overflow:hidden;margin-bottom:24px;
+  animation:slideDown .5s cubic-bezier(.4,0,.2,1) both;
+}
+.ov-card::before{content:'RATING';position:absolute;right:-8px;top:-18px;font-family:'Teko',sans-serif;font-size:6.5rem;font-weight:700;color:rgba(255,107,0,0.04);letter-spacing:-4px;pointer-events:none;user-select:none;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+.ov-ring{position:relative;width:96px;height:96px;flex-shrink:0;}
+.ov-ring svg{width:96px;height:96px;transform:rotate(-90deg);}
+.ov-ring-bg{fill:none;stroke:rgba(255,107,0,0.1);stroke-width:7;}
+.ov-ring-fill{fill:none;stroke:var(--or);stroke-width:7;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:283;transition:stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1),stroke 0.4s;}
+.ov-nw{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ov-num{font-family:'Teko',sans-serif;font-size:2.1rem;font-weight:700;line-height:1;transition:all .3s;}
+.ov-den{font-family:'Teko',sans-serif;font-size:0.62rem;letter-spacing:2px;color:var(--mu);}
+.ov-bars{flex:1;display:flex;flex-direction:column;gap:7px;}
+.ov-row{display:flex;align-items:center;gap:10px;}
+.ov-lbl{font-family:'Teko',sans-serif;font-size:0.64rem;letter-spacing:2px;text-transform:uppercase;color:var(--mu);width:82px;flex-shrink:0;}
+.ov-track{flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;}
+.ov-fill{height:100%;border-radius:3px;transition:width .65s cubic-bezier(.4,0,.2,1);}
+.ov-val{font-family:'Teko',sans-serif;font-size:0.82rem;letter-spacing:1px;width:34px;text-align:right;flex-shrink:0;}
+.ov-grade{text-align:center;flex-shrink:0;}
+.ov-gl{font-family:'Teko',sans-serif;font-size:4.5rem;font-weight:700;line-height:1;text-shadow:0 0 20px currentColor;transition:all .4s;}
+.ov-gw{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--mu);margin-top:2px;}
+
+/* ——— ACTION BAR ——— */
+.ab{display:flex;gap:8px;align-items:center;margin-bottom:22px;flex-wrap:wrap;justify-content:space-between;}
+.ab-l{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:9px 20px;border:none;border-radius:2px;cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:.14s;}
+.btn:hover::after{background:rgba(255,255,255,0.08);}
+.btn-p{background:var(--or);color:#fff;box-shadow:0 3px 18px rgba(255,107,0,0.35);}
+.btn-p:hover{transform:translateY(-1px);}
+.btn-o{background:transparent;color:rgba(240,234,224,0.7);border:1px solid rgba(255,255,255,0.16);}
+.btn-o:hover{border-color:var(--or);color:var(--or);}
+.btn-d{background:transparent;color:#e55;border:1px solid rgba(220,80,80,0.3);padding:9px 12px;}
+.btn-d:hover{background:rgba(220,80,80,0.1);}
+.sw{display:flex;align-items:center;gap:8px;}
+.swl{font-family:'Teko',sans-serif;font-size:0.68rem;letter-spacing:3px;text-transform:uppercase;color:var(--mu);}
+select{background:rgba(0,0,0,0.55);color:var(--wh);border:1px solid rgba(255,255,255,0.16);border-radius:2px;padding:8px 12px;font-family:'Roboto Condensed',sans-serif;font-size:0.85rem;cursor:pointer;outline:none;min-width:200px;}
+select:focus{border-color:var(--or);}
+select option{background:#1a1008;}
+
+/* ——— COMPARE ——— */
+.cmp{background:rgba(8,8,8,0.92);border:1px solid rgba(57,255,20,0.2);border-left:4px solid var(--gr);border-radius:4px;padding:14px 18px;margin-bottom:22px;display:none;backdrop-filter:blur(8px);animation:fadeIn .3s ease;}
+.cmp.on{display:block;}
+.cmpt{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--gr);margin-bottom:10px;}
+.cg{display:flex;gap:8px;flex-wrap:wrap;}
+.ci{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:3px;padding:8px 12px;min-width:110px;transition:transform .2s;}
+.ci:hover{transform:translateY(-2px);}
+.cil{font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:2px;}
+.civ{font-family:'Teko',sans-serif;font-size:1.45rem;line-height:1;}
+.up{color:var(--gr);text-shadow:0 0 6px rgba(57,255,20,0.35);}
+.dn{color:#ff5555;}
+.eq{color:var(--mu);}
+
+/* ——— SECTION ——— */
+.sec{margin-bottom:22px;animation:fadeIn .4s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.sec:nth-child(2){animation-delay:.05s;}
+.sec:nth-child(3){animation-delay:.1s;}
+.sec:nth-child(4){animation-delay:.15s;}
+.sec:nth-child(5){animation-delay:.2s;}
+.sec:nth-child(6){animation-delay:.25s;}
+.sh{display:flex;align-items:center;margin-bottom:11px;gap:0;}
+.sn{font-family:'Teko',sans-serif;font-size:4rem;font-weight:700;color:rgba(255,107,0,0.12);line-height:1;margin-right:-2px;user-select:none;flex-shrink:0;position:relative;top:4px;}
+.st{font-family:'Teko',sans-serif;font-size:1.3rem;font-weight:600;letter-spacing:4px;text-transform:uppercase;padding:4px 15px;background:var(--pn);border:1px solid var(--bd);border-radius:2px;backdrop-filter:blur(10px);position:relative;}
+.st::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--or);border-radius:2px 0 0 2px;}
+.sl{flex:1;height:1px;background:linear-gradient(to right,var(--bd),transparent);margin-left:10px;}
+
+/* ——— GRID ——— */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+
+/* ——— CARD ——— */
+.card{background:var(--pn);border:1px solid var(--bd2);border-radius:4px;padding:13px 15px 11px;position:relative;backdrop-filter:blur(10px);transition:border-color .14s,box-shadow .14s,transform .14s;overflow:hidden;}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(255,107,0,0.18),transparent);}
+.card:focus-within{border-color:rgba(255,107,0,0.55);box-shadow:0 0 22px rgba(255,107,0,0.09);transform:translateY(-1px);}
+.card.ol{border-left:3px solid var(--or);}
+.card.gl{border-left:3px solid var(--gr);}
+.card.bl{border-left:3px solid var(--bl);}
+.cl{font-family:'Teko',sans-serif;font-size:0.63rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--mu);margin-bottom:4px;}
+.card input,.psel{width:100%;background:transparent;border:none;outline:none;color:var(--wh);font-family:'Teko',sans-serif;font-size:1.8rem;font-weight:500;letter-spacing:1px;line-height:1;padding:0;}
+.card input[type=date]{font-size:1.1rem;}
+.card input::placeholder{color:rgba(240,234,224,0.09);}
+.psel{cursor:pointer;font-size:1.1rem;}
+.psel option{background:#1a1008;}
+.cu{position:absolute;right:12px;bottom:10px;font-family:'Teko',sans-serif;font-size:0.7rem;letter-spacing:2px;color:rgba(255,107,0,0.4);text-transform:uppercase;}
+.bt{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:8px;}
+.bf{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.bf-o{background:linear-gradient(to right,var(--or),var(--or2));box-shadow:0 0 5px rgba(255,107,0,0.4);}
+.bf-g{background:var(--gr);box-shadow:0 0 5px rgba(57,255,20,0.3);}
+.bf-b{background:var(--bl);box-shadow:0 0 5px rgba(74,168,255,0.3);}
+
+/* ——— SPRINT VISUAL ——— */
+.sprint-card{background:var(--pn);border:1px solid var(--bd2);border-radius:4px;padding:13px 15px 11px;backdrop-filter:blur(10px);position:relative;overflow:hidden;transition:border-color .14s;}
+.sprint-card:focus-within{border-color:rgba(255,107,0,0.55);}
+.sprint-track{width:100%;height:28px;background:rgba(255,255,255,0.04);border-radius:14px;margin-top:10px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.08);}
+.sprint-runner{position:absolute;left:4px;top:50%;transform:translateY(-50%);width:20px;height:20px;background:var(--or);border-radius:50%;transition:left .4s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 0 10px rgba(255,107,0,0.6);}
+.sprint-finish{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:14px;}
+.sprint-lines{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(255,255,255,0.04) 18px,rgba(255,255,255,0.04) 19px);}
+
+/* ——— VERTICAL JUMP VISUAL ——— */
+.vjump-card{background:var(--pn);border:1px solid var(--bd2);border-radius:4px;padding:13px 15px 11px;backdrop-filter:blur(10px);position:relative;overflow:hidden;transition:border-color .14s;}
+.vjump-card:focus-within{border-color:rgba(255,107,0,0.55);}
+.vj-visual{display:flex;gap:12px;align-items:flex-end;margin-top:10px;height:44px;}
+.vj-bar-bg{flex:1;height:44px;background:rgba(255,255,255,0.04);border-radius:3px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.06);}
+.vj-bar-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,var(--or),var(--or2));border-radius:3px;transition:height .6s cubic-bezier(.4,0,.2,1);box-shadow:0 -3px 10px rgba(255,107,0,0.3);}
+.vj-labels{display:flex;flex-direction:column;justify-content:space-between;height:44px;}
+.vj-lbl-t,.vj-lbl-b{font-family:'Teko',sans-serif;font-size:0.58rem;letter-spacing:1px;color:var(--mu);}
+.vj-bench{position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(255,255,255,0.15);}
+.vj-nba{position:absolute;height:1px;background:rgba(57,255,20,0.4);left:0;right:0;bottom:73%;}
+.vj-nba-lbl{position:absolute;right:3px;font-family:'Teko',sans-serif;font-size:8px;color:var(--gr);white-space:nowrap;bottom:73%;margin-bottom:2px;}
+
+/* ——— SUM CARD ——— */
+.sumc{background:rgba(255,107,0,0.09);border:1px solid rgba(255,107,0,0.27);border-radius:4px;padding:13px 15px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
+.sumc::after{content:'';position:absolute;right:-8px;bottom:-8px;width:65px;height:65px;border:2px solid rgba(255,107,0,0.08);border-radius:50%;}
+.sulbl{font-family:'Teko',sans-serif;font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--or);margin-bottom:2px;}
+.suval{font-family:'Teko',sans-serif;font-size:2.7rem;font-weight:700;color:#FFB040;line-height:1;}
+.supct{font-family:'Teko',sans-serif;font-size:0.95rem;color:var(--mu);margin-left:3px;}
+
+/* ——— SUBHEAD ——— */
+.subh{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--or);margin:13px 0 8px;display:flex;align-items:center;gap:8px;}
+.subh::after{content:'';flex:1;height:1px;background:rgba(255,107,0,0.18);}
+
+/* ——— SHOOTING LAYOUT ——— */
+.shoot-layout{display:grid;grid-template-columns:1fr 310px;gap:12px;align-items:start;}
+.szc{background:var(--pn);border:1px solid var(--bd2);border-radius:4px;backdrop-filter:blur(10px);padding:13px 14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;transition:border-color .14s,transform .14s,box-shadow .14s;position:relative;overflow:hidden;}
+.szc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(255,107,0,0.15),transparent);}
+.szc:focus-within{border-color:rgba(255,107,0,0.5);transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,0,0.1);}
+.szc.hot{border-color:rgba(255,68,68,0.45);box-shadow:0 0 14px rgba(255,68,68,0.1);}
+.szc.good{border-color:rgba(57,255,20,0.4);box-shadow:0 0 14px rgba(57,255,20,0.08);}
+.szlbl{font-family:'Teko',sans-serif;font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--mu);margin-bottom:1px;}
+.szinp{width:100%;background:transparent;border:none;outline:none;color:var(--wh);font-family:'Teko',sans-serif;font-size:2.3rem;font-weight:600;text-align:center;line-height:1;}
+.szinp::placeholder{color:rgba(240,234,224,0.07);}
+.szden{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:2px;color:rgba(255,107,0,0.4);}
+.szbar{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:4px;overflow:hidden;}
+.szfill{height:100%;border-radius:2px;transition:width .5s,background .5s;}
+.szpct{font-family:'Teko',sans-serif;font-size:0.8rem;letter-spacing:1px;margin-top:2px;transition:color .4s;}
+
+/* ——— HEATMAP ——— */
+.hm-wrap{background:rgba(10,5,0,0.92);border:1px solid var(--bd2);border-radius:4px;backdrop-filter:blur(12px);padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.hm-title{font-family:'Teko',sans-serif;font-size:0.63rem;letter-spacing:4px;text-transform:uppercase;color:var(--or);align-self:flex-start;}
+.court-svg{width:100%;max-width:290px;}
+/* heat zone transitions */
+.hz{transition:fill .5s ease,filter .5s ease;}
+.hz.pulse{animation:hmPulse 1.5s ease-in-out;}
+@keyframes hmPulse{0%{filter:brightness(1);}50%{filter:brightness(1.6);}100%{filter:brightness(1);}}
+.zpct{font-family:'Teko',sans-serif;font-size:11px;font-weight:600;fill:rgba(255,255,255,0.92);text-anchor:middle;dominant-baseline:central;pointer-events:none;transition:opacity .3s;}
+/* legend */
+.hm-leg{display:flex;gap:10px;align-items:center;align-self:flex-start;flex-wrap:wrap;}
+.hml{display:flex;align-items:center;gap:4px;}
+.hmld{width:8px;height:8px;border-radius:50%;}
+.hmll{font-family:'Teko',sans-serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--mu);}
+
+/* ——— DRIBBLE METER ——— */
+.drib-card{background:var(--pn);border:1px solid var(--bd2);border-radius:4px;padding:13px 15px 11px;backdrop-filter:blur(10px);position:relative;overflow:hidden;transition:border-color .14s;}
+.drib-card:focus-within{border-color:rgba(255,107,0,0.55);}
+.drib-dots{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;}
+.drib-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.06);transition:background .15s,transform .1s;}
+.drib-dot.active{background:var(--or);box-shadow:0 0 4px rgba(255,107,0,0.5);}
+
+/* ——— REBOUND METER ——— */
+.reb-visual{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.reb-ball{font-size:1.4rem;transition:transform .3s;}
+.reb-track{flex:1;display:flex;gap:4px;}
+.reb-pip{flex:1;height:20px;background:rgba(255,255,255,0.05);border-radius:3px;transition:background .2s,transform .15s;border:1px solid rgba(255,255,255,0.06);}
+.reb-pip.on{background:rgba(255,107,0,0.55);border-color:rgba(255,107,0,0.4);transform:scaleY(1.1);}
+
+/* ——— FT PCT RING ——— */
+.ft-ring-wrap{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:6px 0;}
+.ft-ring-lbl{font-family:'Teko',sans-serif;font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--mu);}
+.ft-ring-val{font-family:'Teko',sans-serif;font-size:2.4rem;line-height:1;transition:all .3s;}
+.ft-ring-sub{font-family:'Teko',sans-serif;font-size:0.65rem;letter-spacing:2px;color:var(--mu);}
+
+/* ——— NOTES ——— */
+textarea{width:100%;background:var(--pn);border:1px solid var(--bd2);border-radius:4px;color:var(--wh);font-family:'Roboto Condensed',sans-serif;font-size:0.95rem;padding:13px 15px;resize:vertical;min-height:90px;outline:none;transition:border-color .14s;line-height:1.6;backdrop-filter:blur(8px);}
+textarea:focus{border-color:rgba(255,107,0,0.45);}
+textarea::placeholder{color:var(--mu2);}
+
+/* ——— TOAST ——— */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--dk);border:1px solid var(--or);border-left:4px solid var(--or);color:var(--wh);padding:11px 18px;border-radius:4px;font-family:'Teko',sans-serif;font-size:0.95rem;letter-spacing:2px;text-transform:uppercase;z-index:999;opacity:0;transform:translateX(26px);transition:all .3s;pointer-events:none;box-shadow:0 4px 28px rgba(0,0,0,0.6);}
+.toast.on{opacity:1;transform:translateX(0);}
+
+/* ——— RESPONSIVE ——— */
+@media(max-width:820px){
+  .shoot-layout{grid-template-columns:1fr;}
+  .hm-wrap{display:none;}
+}
+@media(max-width:720px){
+  .g4{grid-template-columns:repeat(2,1fr);}
+  .sb-panels{display:none;}
+  .sb-h1{font-size:1.8rem;}
+}
+@media(max-width:480px){.g2,.g3{grid-template-columns:1fr;}}
+@media print{
+  .ball-loader,.sb,.ab,.cmp,.toast{display:none!important;}
+  body{background:#fff!important;}
+  .card,.sumc,.szc,.hm-wrap,.ov-card,.sprint-card,.vjump-card,.drib-card{background:#fff!important;border-color:#ddd!important;backdrop-filter:none!important;}
+  .card input,textarea,.suval{color:#000!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- BALL LOADER -->
+<div class="ball-loader" id="loader">
+  <div class="ball-bounce"></div>
+  <div class="ball-shadow"></div>
+  <div class="ball-loader-txt">Ładowanie trackera...</div>
+</div>
+
+<div class="court-circle"></div>
+<div class="court-line-h"></div>
+
+<!-- ════ SCOREBOARD ════ -->
+<div class="sb">
+  <div class="sb-top">
+    <div class="sb-logo" title="Basketball Progress Tracker">
+      <svg viewBox="0 0 50 50" fill="none">
+        <circle cx="25" cy="25" r="23" stroke="#FF6B00" stroke-width="2"/>
+        <path d="M25 2Q37 12 37 25Q37 38 25 48" stroke="#FF6B00" stroke-width="2.2" fill="none"/>
+        <path d="M25 2Q13 12 13 25Q13 38 25 48" stroke="#FF6B00" stroke-width="2.2" fill="none"/>
+        <line x1="2" y1="25" x2="48" y2="25" stroke="#FF6B00" stroke-width="2"/>
+        <circle cx="25" cy="25" r="4.5" stroke="#FF6B00" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+    <div class="sb-title">
+      <div class="sb-eye">Player Evaluation System · v2</div>
+      <div class="sb-h1">Basketball Progress Tracker</div>
+    </div>
+    <div class="sb-panels">
+      <div class="sb-cell"><div class="sbcl">Zawodnik</div><div class="sbcv" id="sbName" style="font-size:1.1rem;min-width:80px">—</div></div>
+      <div class="sb-cell"><div class="sbcl">Pozycja</div><div class="sbcv led-o" id="sbPos">—</div></div>
+      <div class="sb-cell"><div class="sbcl">Vertical</div><div class="sbcv led" id="sbVert">--</div></div>
+      <div class="sb-cell"><div class="sbcl">FT %</div><div class="sbcv led" id="sbFT">--</div></div>
+      <div class="sb-cell"><div class="sbcl">Overall</div><div class="sbcv led-o" id="sbRating" style="font-size:2.5rem">--</div></div>
+      <div class="sb-cell"><div class="sbcl">Sesje</div><div class="sbcv" id="sbSessions">00</div></div>
+    </div>
+  </div>
+  <div class="sb-ticker">
+    <div class="titem"><div class="tdot g"></div><span class="tlbl">Live tracking</span></div>
+    <div class="titem"><div class="tdot"></div><span class="tlbl">Data:</span>&nbsp;<span class="tval" id="sbDate">—</span></div>
+    <div class="titem"><div class="tdot"></div><span class="tlbl">Wingspan:</span>&nbsp;<span class="tval" id="sbWing">—</span></div>
+    <div class="titem"><div class="tdot"></div><span class="tlbl">Sprint:</span>&nbsp;<span class="tval" id="sbSprint">—</span></div>
+    <div class="titem"><div class="tdot"></div><span class="tlbl">3PT total:</span>&nbsp;<span class="tval" id="sb3pt">—</span></div>
+  </div>
+</div>
+
+<!-- ════ WRAP ════ -->
+<div class="wrap">
+
+<!-- OVERALL -->
+<div class="ov-card">
+  <div class="ov-ring">
+    <svg viewBox="0 0 96 96"><circle class="ov-ring-bg" cx="48" cy="48" r="40"/><circle class="ov-ring-fill" id="ovRing" cx="48" cy="48" r="40"/></svg>
+    <div class="ov-nw"><div class="ov-num" id="ovNum">0</div><div class="ov-den">/ 100</div></div>
+  </div>
+  <div class="ov-bars">
+    <div class="ov-row"><span class="ov-lbl">🎯 Shooting</span><div class="ov-track"><div class="ov-fill" id="bSh" style="width:0%;background:linear-gradient(to right,#FFB040,#FFD080)"></div></div><span class="ov-val" id="vSh">0%</span></div>
+    <div class="ov-row"><span class="ov-lbl">🏃 Athleticism</span><div class="ov-track"><div class="ov-fill" id="bAt" style="width:0%;background:linear-gradient(to right,#FF6B00,#FFA040)"></div></div><span class="ov-val" id="vAt">0%</span></div>
+    <div class="ov-row"><span class="ov-lbl">🤜 Finishing</span><div class="ov-track"><div class="ov-fill" id="bFn" style="width:0%;background:linear-gradient(to right,#4AA8FF,#80C8FF)"></div></div><span class="ov-val" id="vFn">0%</span></div>
+    <div class="ov-row"><span class="ov-lbl">🔄 Ball Handle</span><div class="ov-track"><div class="ov-fill" id="bBH" style="width:0%;background:linear-gradient(to right,#FF4444,#FF8888)"></div></div><span class="ov-val" id="vBH">0%</span></div>
+    <div class="ov-row"><span class="ov-lbl">📦 Rebounding</span><div class="ov-track"><div class="ov-fill" id="bRb" style="width:0%;background:linear-gradient(to right,#39FF14,#80FF60)"></div></div><span class="ov-val" id="vRb">0%</span></div>
+  </div>
+  <div class="ov-grade">
+    <div class="ov-gl" id="ovG" style="color:var(--mu)">—</div>
+    <div class="ov-gw" id="ovW">Brak danych</div>
+  </div>
+</div>
+
+<!-- ACTION BAR -->
+<div class="ab">
+  <div class="ab-l">
+    <button class="btn btn-p" onclick="saveSession()">💾 Zapisz sesję</button>
+    <button class="btn btn-o" onclick="clearForm()">✕ Wyczyść</button>
+    <button class="btn btn-o" onclick="window.print()">🖨 Drukuj</button>
+  </div>
+  <div class="sw">
+    <span class="swl">Historia:</span>
+    <select id="sessionSelect" onchange="loadSession(this.value)"><option value="">— wybierz sesję —</option></select>
+    <button class="btn btn-d" id="btnDelete" onclick="deleteSession()" style="display:none">🗑</button>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="cmp" id="cmpWrap">
+  <div class="cmpt">📈 Delta vs poprzednia sesja</div>
+  <div class="cg" id="cmpGrid"></div>
+</div>
+
+<!-- ════ 01 PLAYER INFO ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">01</div><div class="st">Player Info</div><div class="sl"></div></div>
+  <div class="g4">
+    <div class="card ol"><div class="cl">👤 Imię zawodnika</div><input type="text" id="name" placeholder="Jan Kowalski" oninput="updateSB()"></div>
+    <div class="card"><div class="cl">📅 Data pomiaru</div><input type="date" id="date" oninput="updateSB()"></div>
+    <div class="card"><div class="cl">🎂 Wiek</div><input type="number" id="age" placeholder="17" min="6" max="50"><div class="cu">lat</div></div>
+    <div class="card"><div class="cl">🏀 Pozycja</div>
+      <select id="position" class="psel" onchange="updateSB()">
+        <option value="">—</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 02 PHYSICAL ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">02</div><div class="st">Physical</div><div class="sl"></div></div>
+  <div class="g4">
+    <div class="card ol"><div class="cl">📏 Wzrost</div><input type="number" id="height" placeholder="185" oninput="calcOverall()"><div class="cu">cm</div></div>
+    <div class="card"><div class="cl">⚖️ Waga</div><input type="number" id="weight" placeholder="80"><div class="cu">kg</div></div>
+    <div class="card"><div class="cl">↔️ Wingspan</div><input type="number" id="wingspan" placeholder="192" oninput="updateSB()"><div class="cu">cm</div></div>
+    <div class="card"><div class="cl">☝️ Standing Reach</div><input type="number" id="standingReach" placeholder="242"><div class="cu">cm</div></div>
+  </div>
+</div>
+
+<!-- ════ 03 ATHLETICISM ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">03</div><div class="st">Athleticism</div><div class="sl"></div></div>
+  <div class="g3">
+    <!-- VERTICAL JUMP WITH BAR VISUAL -->
+    <div class="vjump-card ol card" style="grid-column:span 1">
+      <div class="cl">⬆️ Vertical Jump</div>
+      <input type="number" id="vertJump" placeholder="65" oninput="updateVJump();calcOverall();updateSB()">
+      <div class="cu">cm</div>
+      <div class="vj-visual">
+        <div class="vj-bar-bg">
+          <div class="vj-nba"></div>
+          <div class="vj-nba-lbl">NBA avg</div>
+          <div class="vj-bar-fill" id="vjFill" style="height:0%"></div>
+        </div>
+        <div class="vj-labels">
+          <div class="vj-lbl-t">100cm</div>
+          <div class="vj-lbl-b">0cm</div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="cl">↔️ Skok w dal</div><input type="number" id="broadJump" placeholder="220" oninput="calcOverall()"><div class="cu">cm</div></div>
+    <!-- SPRINT WITH RUNNER -->
+    <div class="sprint-card">
+      <div class="cl">⚡ Sprint 20 m</div>
+      <input type="number" id="sprint20" step="0.01" placeholder="3.20" oninput="updateSprint();calcOverall();updateSB()">
+      <div class="cu">sek</div>
+      <div class="sprint-track">
+        <div class="sprint-lines"></div>
+        <div class="sprint-runner" id="sprintRunner">🏃</div>
+        <div class="sprint-finish">🏁</div>
+      </div>
+    </div>
+    <div class="card"><div class="cl">🏀 Sprint 20m z piłką</div><input type="number" id="sprint20ball" step="0.01" placeholder="3.50" oninput="calcOverall()"><div class="cu">sek</div></div>
+    <div class="card"><div class="cl">🛡 Defensive Slide</div><input type="number" id="defSlide" step="0.01" placeholder="11.5" oninput="calcOverall()"><div class="cu">sek</div></div>
+  </div>
+</div>
+
+<!-- ════ 04 SHOOTING ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">04</div><div class="st">Shooting</div><div class="sl"></div></div>
+
+  <!-- FREE THROWS -->
+  <div class="subh">🎯 Free Throws</div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card gl">
+      <div class="cl">Free Throws (rzuty wolne)</div>
+      <input type="number" id="ft" min="0" max="25" placeholder="19" oninput="updateFT();calcOverall()">
+      <div class="cu">/ 25</div>
+      <div class="bt"><div class="bf bf-g" id="ftBar" style="width:0%"></div></div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+      <div class="cl" style="text-align:center;margin:0 0 4px">Skuteczność</div>
+      <div class="ft-ring-val led" id="ftPct">--%</div>
+      <div class="ft-ring-sub" id="ftGrade">—</div>
+    </div>
+  </div>
+
+  <!-- THREE POINT + HEATMAP -->
+  <div class="subh">🔥 Three-Point Shooting · /25 każda</div>
+  <div class="shoot-layout">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="g2">
+        <div class="szc" id="zc1"><div class="szlbl">📍 Róg lewy</div><input class="szinp" type="number" id="tp1" min="0" max="25" placeholder="0" oninput="calcTP()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpb1"></div></div><div class="szpct" id="zpct1">--</div></div>
+        <div class="szc" id="zc2"><div class="szlbl">◀ Skrzydło L</div><input class="szinp" type="number" id="tp2" min="0" max="25" placeholder="0" oninput="calcTP()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpb2"></div></div><div class="szpct" id="zpct2">--</div></div>
+      </div>
+      <div class="szc" id="zc3"><div class="szlbl">▲ Top of the key</div><input class="szinp" type="number" id="tp3" min="0" max="25" placeholder="0" oninput="calcTP()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpb3"></div></div><div class="szpct" id="zpct3">--</div></div>
+      <div class="g2">
+        <div class="szc" id="zc4"><div class="szlbl">▶ Skrzydło P</div><input class="szinp" type="number" id="tp4" min="0" max="25" placeholder="0" oninput="calcTP()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpb4"></div></div><div class="szpct" id="zpct4">--</div></div>
+        <div class="szc" id="zc5"><div class="szlbl">📍 Róg prawy</div><input class="szinp" type="number" id="tp5" min="0" max="25" placeholder="0" oninput="calcTP()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpb5"></div></div><div class="szpct" id="zpct5">--</div></div>
+      </div>
+      <div class="sumc"><div class="sulbl">Suma Three-Point</div><div class="suval" id="tpSum">0<span class="supct">/ 125</span></div></div>
+    </div>
+
+    <!-- HEATMAP COURT -->
+    <div class="hm-wrap">
+      <div class="hm-title">🏀 Shot Heatmap</div>
+      <svg class="court-svg" viewBox="0 0 300 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Court background -->
+        <rect width="300" height="310" rx="4" fill="rgba(6,3,0,0.85)"/>
+        <!-- Wood grain lines -->
+        <line x1="0" y1="50" x2="300" y2="50" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="100" x2="300" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="150" x2="300" y2="150" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="200" x2="300" y2="200" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="0" y1="250" x2="300" y2="250" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <!-- Court outline -->
+        <rect x="8" y="8" width="284" height="250" rx="3" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none"/>
+        <!-- Paint (key) -->
+        <rect x="108" y="8" width="84" height="130" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" fill="rgba(255,107,0,0.05)"/>
+        <!-- Inner lane markings -->
+        <line x1="108" y1="80" x2="192" y2="80" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <line x1="108" y1="100" x2="192" y2="100" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <!-- Free throw circle -->
+        <circle cx="150" cy="138" r="30" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" fill="none"/>
+        <!-- Free throw circle lower half filled slightly -->
+        <path d="M 120 138 a 30 30 0 0 0 60 0" fill="rgba(255,255,255,0.03)" stroke="none"/>
+        <!-- Restricted area -->
+        <path d="M 133 8 a 17 17 0 0 1 34 0" stroke="rgba(255,255,255,0.12)" stroke-width="1" fill="none"/>
+
+        <!-- *** BASKET / BACKBOARD *** -->
+        <!-- Backboard -->
+        <rect x="130" y="13" width="40" height="7" rx="1" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+        <!-- Backboard square -->
+        <rect x="139" y="14" width="22" height="5" rx="0.5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+        <!-- Pole -->
+        <line x1="150" y1="20" x2="150" y2="28" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+        <!-- Rim (orange circle) -->
+        <circle cx="150" cy="32" r="9" fill="none" stroke="#FF6B00" stroke-width="2.5"/>
+        <!-- Net lines -->
+        <line x1="144" y1="41" x2="142" y2="52" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <line x1="147" y1="41" x2="146" y2="52" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <line x1="150" y1="41" x2="150" y2="52" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <line x1="153" y1="41" x2="154" y2="52" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <line x1="156" y1="41" x2="158" y2="52" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <!-- Net bottom -->
+        <path d="M 142 52 Q 150 58 158 52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+        <!-- Rim glow dot -->
+        <circle cx="150" cy="32" r="4" fill="rgba(255,107,0,0.3)"/>
+
+        <!-- 3PT ARC dashed -->
+        <path d="M 23 258 L 23 165 Q 23 18 150 18 Q 277 18 277 165 L 277 258" stroke="rgba(255,255,255,0.24)" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+        <line x1="8" y1="165" x2="23" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        <line x1="277" y1="165" x2="292" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+
+        <!-- HEAT ZONES -->
+        <!-- Corner Left -->
+        <path id="hz1" class="hz" d="M 8 165 L 8 258 L 23 258 L 23 165 Z" fill="rgba(50,50,50,0.4)"/>
+        <!-- Wing Left -->
+        <path id="hz2" class="hz" d="M 8 88 L 8 165 L 23 165 Q 23 118 55 96 L 38 88 Z" fill="rgba(50,50,50,0.4)"/>
+        <!-- Top -->
+        <path id="hz3" class="hz" d="M 68 8 L 232 8 Q 277 18 277 80 L 248 78 Q 230 20 150 20 Q 70 20 52 78 L 23 80 Q 23 18 68 8 Z" fill="rgba(50,50,50,0.4)"/>
+        <!-- Wing Right -->
+        <path id="hz4" class="hz" d="M 292 165 L 292 88 L 262 88 L 245 96 Q 277 118 277 165 Z" fill="rgba(50,50,50,0.4)"/>
+        <!-- Corner Right -->
+        <path id="hz5" class="hz" d="M 277 258 L 292 258 L 292 165 L 277 165 Z" fill="rgba(50,50,50,0.4)"/>
+        <!-- FT zone -->
+        <path id="hzFT" class="hz" d="M 108 8 L 192 8 L 192 138 Q 150 118 108 138 Z" fill="rgba(50,50,50,0.22)"/>
+
+        <!-- Zone % labels -->
+        <text id="ht1" class="zpct" x="16" y="211">—</text>
+        <text id="ht2" class="zpct" x="16" y="128">—</text>
+        <text id="ht3" class="zpct" x="150" y="52">—</text>
+        <text id="ht4" class="zpct" x="284" y="128">—</text>
+        <text id="ht5" class="zpct" x="284" y="211">—</text>
+        <text id="htFT" class="zpct" x="150" y="90">—</text>
+
+        <!-- Zone name labels -->
+        <text x="16" y="246" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">CORNER L</text>
+        <text x="16" y="155" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">WING L</text>
+        <text x="150" y="68" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">TOP</text>
+        <text x="284" y="155" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">WING R</text>
+        <text x="284" y="246" text-anchor="middle" font-family="Teko,sans-serif" font-size="7" fill="rgba(255,255,255,0.28)" letter-spacing="1">CORNER R</text>
+
+        <!-- Bottom label -->
+        <text x="150" y="286" text-anchor="middle" font-family="Teko,sans-serif" font-size="9" fill="rgba(255,107,0,0.4)" letter-spacing="3">3PT SHOT CHART</text>
+      </svg>
+      <div class="hm-leg">
+        <div class="hml"><div class="hmld" style="background:rgba(57,255,20,0.8)"></div><span class="hmll">&gt;60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,210,0,0.8)"></div><span class="hmll">40-60%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,107,0,0.8)"></div><span class="hmll">25-40%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(255,59,59,0.8)"></div><span class="hmll">&lt;25%</span></div>
+        <div class="hml"><div class="hmld" style="background:rgba(70,70,70,0.6)"></div><span class="hmll">Brak</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDRANGE -->
+  <div class="subh" style="margin-top:12px">📐 Midrange · /25 każda</div>
+  <div class="g3">
+    <div class="szc"><div class="szlbl">◀ Lewa strona</div><input class="szinp" type="number" id="mr1" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr1"></div></div><div class="szpct" id="zpctmr1">--</div></div>
+    <div class="szc"><div class="szlbl">▶ Prawa strona</div><input class="szinp" type="number" id="mr2" min="0" max="25" placeholder="0" oninput="calcMR()"><div class="szden">/ 25</div><div class="szbar"><div class="szfill" id="zpbmr2"></div></div><div class="szpct" id="zpctmr2">--</div></div>
+    <div class="sumc"><div class="sulbl">Suma Midrange</div><div class="suval" id="mrSum">0<span class="supct">/ 50</span></div></div>
+  </div>
+</div>
+
+<!-- ════ 05 FINISHING ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">05</div><div class="st">Finishing</div><div class="sl"></div></div>
+  <div class="g4">
+    <div class="card"><div class="cl">🤜 Layup prawa</div><input type="number" id="layR" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layRBar" style="width:0%"></div></div></div>
+    <div class="card"><div class="cl">🤛 Layup lewa</div><input type="number" id="layL" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="layLBar" style="width:0%"></div></div></div>
+    <div class="card"><div class="cl">💨 Drive finish</div><input type="number" id="drive" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="driveBar" style="width:0%"></div></div></div>
+    <div class="card"><div class="cl">🎈 Floater</div><input type="number" id="floater" min="0" max="25" placeholder="0" oninput="calcOverall()"><div class="cu">/ 25</div><div class="bt"><div class="bf bf-b" id="floaterBar" style="width:0%"></div></div></div>
+  </div>
+</div>
+
+<!-- ════ 06 BALL HANDLING ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">06</div><div class="st">Ball Handling</div><div class="sl"></div></div>
+  <div class="g3">
+    <div class="card ol"><div class="cl">🔄 Slalom z kozłowaniem</div><input type="number" id="slalom" step="0.01" placeholder="8.5" oninput="calcOverall()"><div class="cu">sek</div></div>
+    <!-- DRIBBLE DOTS METER RIGHT HAND -->
+    <div class="drib-card">
+      <div class="cl">👊 Kozłowanie 30s — prawa</div>
+      <input type="number" id="drib30R" placeholder="45" min="0" max="80" oninput="updateDrib('drib30R','dribDotsR',80);calcOverall()">
+      <div class="cu">ilość</div>
+      <div class="drib-dots" id="dribDotsR"></div>
+    </div>
+    <!-- DRIBBLE DOTS METER LEFT HAND -->
+    <div class="drib-card">
+      <div class="cl">✊ Kozłowanie 30s — lewa</div>
+      <input type="number" id="drib30L" placeholder="38" min="0" max="80" oninput="updateDrib('drib30L','dribDotsL',80);calcOverall()">
+      <div class="cu">ilość</div>
+      <div class="drib-dots" id="dribDotsL"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 07 REBOUNDING ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">07</div><div class="st">Rebounding</div><div class="sl"></div></div>
+  <div class="g2">
+    <div class="card ol">
+      <div class="cl">📦 Zbiórki z 10 rzutów od tablicy</div>
+      <input type="number" id="rebound" min="0" max="10" placeholder="7" oninput="updateRebound();calcOverall()">
+      <div class="cu">/ 10</div>
+      <div class="reb-visual">
+        <div class="reb-ball" id="rebBall">🏀</div>
+        <div class="reb-track" id="rebTrack"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 08 NOTES ════ -->
+<div class="sec">
+  <div class="sh"><div class="sn">08</div><div class="st">Notatki trenera</div><div class="sl"></div></div>
+  <textarea id="notes" placeholder="Uwagi, obserwacje, cele na następny pomiar..."></textarea>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<script>
+const FIELDS=['name','date','age','position','height','weight','wingspan','standingReach','vertJump','broadJump','sprint20','sprint20ball','defSlide','ft','tp1','tp2','tp3','tp4','tp5','mr1','mr2','layR','layL','drive','floater','slalom','drib30R','drib30L','rebound','notes'];
+const CMPF=[{id:'vertJump',l:'Vertical',u:'cm',lib:false},{id:'sprint20',l:'Sprint 20m',u:'s',lib:true},{id:'ft',l:'FT',u:'/25',lib:false},{id:'broadJump',l:'Skok w dal',u:'cm',lib:false},{id:'drib30R',l:'Dribble P',u:'',lib:false},{id:'drib30L',l:'Dribble L',u:'',lib:false},{id:'rebound',l:'Zbiórki',u:'/10',lib:false}];
+
+// ——— HEAT COLOR ———
+function heatColor(pct){
+  if(pct===null)return'rgba(50,50,50,0.4)';
+  if(pct>=.60)return`rgba(57,255,20,${.28+pct*.45})`;
+  if(pct>=.40)return`rgba(255,210,0,${.3+pct*.4})`;
+  if(pct>=.25)return`rgba(255,107,0,${.32+pct*.38})`;
+  return`rgba(255,59,59,${.38+pct*.3})`;
+}
+function barColor(pct){
+  if(pct>=.60)return'var(--gr)';
+  if(pct>=.40)return'var(--yw)';
+  if(pct>=.25)return'var(--or2)';
+  return'var(--rd)';
+}
+function pctColor(pct){
+  if(pct>=.60)return'var(--gr)';
+  if(pct>=.40)return'var(--yw)';
+  if(pct>=.25)return'var(--or2)';
+  return'var(--rd)';
+}
+
+// ——— ZONE CARD STYLE ———
+function styleZoneCard(id,pct){
+  const el=document.getElementById('zc'+id);if(!el)return;
+  el.classList.remove('hot','good');
+  if(pct!==null){
+    if(pct>=.60)el.classList.add('good');
+    else if(pct<.30)el.classList.add('hot');
+  }
+}
+
+// ——— CALC TP ———
+function calcTP(){
+  const ids=['tp1','tp2','tp3','tp4','tp5'];
+  let sum=0;
+  ids.forEach((id,i)=>{
+    const raw=document.getElementById(id).value;
+    const has=raw!==''; const v=parseInt(raw)||0;
+    const pct=has?v/25:null;
+    sum+=v;
+    // heatmap
+    const hz=document.getElementById('hz'+(i+1));
+    const ht=document.getElementById('ht'+(i+1));
+    if(hz){
+      const prev=hz.getAttribute('fill');
+      const next=heatColor(pct);
+      if(prev!==next){hz.setAttribute('fill',next);hz.classList.remove('pulse');void hz.offsetWidth;hz.classList.add('pulse');}
+    }
+    if(ht){ht.textContent=has?Math.round(v/25*100)+'%':'—'; ht.setAttribute('fill',has?barColor(pct):'rgba(255,255,255,0.35)');}
+    // bar
+    const bar=document.getElementById('zpb'+(i+1));
+    if(bar){bar.style.width=has?Math.min(100,v/25*100)+'%':'0%';bar.style.background=has?barColor(pct):'rgba(255,255,255,0.06)';}
+    // pct label under input
+    const pctEl=document.getElementById('zpct'+(i+1));
+    if(pctEl){pctEl.textContent=has?Math.round(v/25*100)+'%':'--'; pctEl.style.color=has?pctColor(pct):'var(--mu)';}
+    styleZoneCard(i+1,pct);
+  });
+  document.getElementById('tpSum').innerHTML=sum+'<span class="supct">/ 125</span>';
+  calcOverall();
+}
+
+// ——— CALC MR ———
+function calcMR(){
+  ['mr1','mr2'].forEach((id,i)=>{
+    const raw=document.getElementById(id).value;const has=raw!=='';const v=parseInt(raw)||0;
+    const pct=has?v/25:null;
+    const bar=document.getElementById('zpbmr'+(i+1));
+    if(bar){bar.style.width=has?Math.min(100,v/25*100)+'%':'0%';bar.style.background=has?barColor(pct):'rgba(255,255,255,0.06)';}
+    const pe=document.getElementById('zpctmr'+(i+1));
+    if(pe){pe.textContent=has?Math.round(v/25*100)+'%':'--'; pe.style.color=has?pctColor(pct):'var(--mu)';}
+  });
+  const s=(parseInt(document.getElementById('mr1').value)||0)+(parseInt(document.getElementById('mr2').value)||0);
+  document.getElementById('mrSum').innerHTML=s+'<span class="supct">/ 50</span>';
+  calcOverall();
+}
+
+// ——— FT ———
+function updateFT(){
+  const raw=document.getElementById('ft').value;const v=parseInt(raw)||0;const has=raw!=='';
+  const pct=has?v/25:null;
+  document.getElementById('ftBar').style.width=has?v/25*100+'%':'0%';
+  const ftPctEl=document.getElementById('ftPct');
+  const pp=has?Math.round(v/25*100):null;
+  ftPctEl.textContent=pp!==null?pp+'%':'--%';
+  ftPctEl.style.color=pct!==null?pctColor(pct):'var(--mu)';
+  const grades=['Elite','Très bon','Bon','Przeciętny','Słaby','Bardzo słaby'];
+  const thresholds=[.88,.76,.64,.50,.36,0];
+  let grade='—';
+  if(pct!==null){for(let i=0;i<thresholds.length;i++){if(pct>=thresholds[i]){grade=grades[i];break;}}}
+  document.getElementById('ftGrade').textContent=grade;
+  // heatmap FT zone
+  const hzFT=document.getElementById('hzFT');
+  if(hzFT)hzFT.setAttribute('fill',heatColor(pct));
+  const htFT=document.getElementById('htFT');
+  if(htFT){htFT.textContent=pp!==null?pp+'%':'—';htFT.setAttribute('fill',pct!==null?barColor(pct):'rgba(255,255,255,0.35)');}
+}
+
+// ——— VERTICAL JUMP VISUAL ———
+function updateVJump(){
+  const v=parseFloat(document.getElementById('vertJump').value)||0;
+  const pct=Math.min(100,v); // max 100cm
+  document.getElementById('vjFill').style.height=pct+'%';
+}
+
+// ——— SPRINT RUNNER ———
+function updateSprint(){
+  const v=parseFloat(document.getElementById('sprint20').value)||0;
+  // 2.8s = right end, 5.0s = left
+  let pos=4;
+  if(v>0){const t=Math.max(2.8,Math.min(5.0,v));pos=4+(t-2.8)/(5.0-2.8)*(94-4);}
+  document.getElementById('sprintRunner').style.left=Math.max(4,100-pos)+'%';
+  updateSB();
+}
+
+// ——— DRIBBLE DOTS ———
+function updateDrib(inputId,dotsId,max){
+  const v=parseInt(document.getElementById(inputId).value)||0;
+  const container=document.getElementById(dotsId);
+  if(!container)return;
+  const total=max; const active=Math.min(v,total);
+  container.innerHTML='';
+  for(let i=0;i<Math.min(40,total);i++){
+    const d=document.createElement('div');d.className='drib-dot';
+    if(i<Math.round(active/(total/40)))d.classList.add('active');
+    container.appendChild(d);
+  }
+}
+
+// ——— REBOUND PIPS ———
+function updateRebound(){
+  const v=parseInt(document.getElementById('rebound').value)||0;
+  const track=document.getElementById('rebTrack');
+  const ball=document.getElementById('rebBall');
+  if(!track)return;
+  track.innerHTML='';
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');p.className='reb-pip';
+    if(i<v)p.classList.add('on');
+    track.appendChild(p);
+  }
+  if(ball)ball.style.transform=v>=8?'scale(1.3) rotate(15deg)':'scale(1) rotate(0)';
+}
+
+// ——— FINISHING BARS ———
+function updateFinishBars(){
+  [['layR','layRBar'],['layL','layLBar'],['drive','driveBar'],['floater','floaterBar']].forEach(([id,bid])=>{
+    const v=parseInt(document.getElementById(id).value)||0;
+    const b=document.getElementById(bid);if(b)b.style.width=Math.min(100,v/25*100)+'%';
+  });
+}
+
+// ——— OVERALL ———
+function g(id){return parseFloat(document.getElementById(id).value)||0;}
+function calcOverall(){
+  updateFinishBars();
+  const ft=g('ft'),tp=['tp1','tp2','tp3','tp4','tp5'].reduce((a,id)=>a+g(id),0),mr=g('mr1')+g('mr2');
+  const shs=((ft/25)*7)+((tp/125)*18)+((mr/50)*10); // max 35
+  const vert=g('vertJump'),broad=g('broadJump'),sp=g('sprint20'),ds=g('defSlide');
+  const ats=((Math.min(vert,100)/100)*10)+((Math.min(broad,300)/300)*5)+(sp>0?Math.min(3.5/sp,1)*5:0)+(ds>0?Math.min(13/ds,1)*5:0); // max 25
+  const fin=['layR','layL','drive','floater'].reduce((a,id)=>a+g(id),0);
+  const fns=(fin/100)*20; // max 20
+  const sl=g('slalom'),dR=g('drib30R'),dL=g('drib30L');
+  const bhs=(sl>0?Math.min(12/sl,1)*4:0)+((Math.min(dR,60)/60)*4)+((Math.min(dL,60)/60)*4); // max 12
+  const rbs=(g('rebound')/10)*8; // max 8
+  const total=Math.round(shs+ats+fns+bhs+rbs);
+
+  const setBar=(id,vid,val,max)=>{
+    const el=document.getElementById(id);if(el)el.style.width=Math.min(100,val/max*100)+'%';
+    const ve=document.getElementById(vid);if(ve)ve.textContent=Math.round(val/max*100)+'%';
+  };
+  setBar('bSh','vSh',shs,35);setBar('bAt','vAt',ats,25);setBar('bFn','vFn',fns,20);setBar('bBH','vBH',bhs,12);setBar('bRb','vRb',rbs,8);
+
+  const ring=document.getElementById('ovRing');
+  const circ=2*Math.PI*40;
+  ring.style.strokeDashoffset=circ-(circ*(total/100));
+  ring.style.stroke=total>=80?'var(--gr)':total>=60?'#FFD080':total>=40?'var(--or2)':'var(--rd)';
+  document.getElementById('ovNum').textContent=total;
+  document.getElementById('ovNum').style.color=total>=80?'var(--gr)':total>=60?'var(--yw)':total>=40?'var(--or2)':'var(--rd)';
+
+  const grades=[{t:90,g:'S',w:'Wybitny',c:'var(--gr)'},{t:80,g:'A',w:'Doskonały',c:'var(--gr)'},{t:70,g:'B+',w:'Bardzo dobry',c:'#80FF60'},{t:60,g:'B',w:'Dobry',c:'var(--yw)'},{t:50,g:'C+',w:'Powyżej średniej',c:'var(--or2)'},{t:38,g:'C',w:'Przeciętny',c:'var(--or)'},{t:22,g:'D',w:'Poniżej średniej',c:'#ff8844'},{t:1,g:'F',w:'Niewystarczający',c:'var(--rd)'}];
+  const gr=grades.find(x=>total>=x.t)||{g:'—',w:'Brak danych',c:'var(--mu)'};
+  document.getElementById('ovG').textContent=gr.g;document.getElementById('ovG').style.color=gr.c;
+  document.getElementById('ovW').textContent=gr.w;
+  document.getElementById('sbRating').textContent=total||'--';
+  return total;
+}
+
+function calcRatingFromData(d){
+  const gd=id=>parseFloat(d[id])||0;
+  const ft=gd('ft'),tp=['tp1','tp2','tp3','tp4','tp5'].reduce((a,id)=>a+gd(id),0),mr=gd('mr1')+gd('mr2');
+  const s=((ft/25)*7)+((tp/125)*18)+((mr/50)*10);
+  const v=gd('vertJump'),br=gd('broadJump'),sp=gd('sprint20'),ds=gd('defSlide');
+  const a=((Math.min(v,100)/100)*10)+((Math.min(br,300)/300)*5)+(sp>0?Math.min(3.5/sp,1)*5:0)+(ds>0?Math.min(13/ds,1)*5:0);
+  const fin=(['layR','layL','drive','floater'].reduce((a,id)=>a+gd(id),0)/100)*20;
+  const sl=gd('slalom'),dR=gd('drib30R'),dL=gd('drib30L');
+  const b=(sl>0?Math.min(12/sl,1)*4:0)+((Math.min(dR,60)/60)*4)+((Math.min(dL,60)/60)*4);
+  const r=(gd('rebound')/10)*8;
+  return Math.round(s+a+fin+b+r);
+}
+
+// ——— SCOREBOARD ———
+function updateSB(){
+  document.getElementById('sbName').textContent=document.getElementById('name').value||'—';
+  document.getElementById('sbDate').textContent=document.getElementById('date').value||'—';
+  document.getElementById('sbPos').textContent=document.getElementById('position').value||'—';
+  const v=document.getElementById('vertJump').value;document.getElementById('sbVert').textContent=v?v+'cm':'--';
+  const ft=parseInt(document.getElementById('ft').value)||0;document.getElementById('sbFT').textContent=ft?Math.round(ft/25*100)+'%':'--';
+  const wing=document.getElementById('wingspan').value;document.getElementById('sbWing').textContent=wing?wing+'cm':'—';
+  const sp=document.getElementById('sprint20').value;document.getElementById('sbSprint').textContent=sp?sp+'s':'—';
+  const tp=['tp1','tp2','tp3','tp4','tp5'].reduce((a,id)=>a+(parseInt(document.getElementById(id).value)||0),0);
+  document.getElementById('sb3pt').textContent=tp||'—';
+  document.getElementById('sbSessions').textContent=String(getSessions().length).padStart(2,'0');
+  calcOverall();
+}
+
+// ——— SESSIONS ———
+function getSessions(){try{return JSON.parse(localStorage.getItem('bpt_v4')||'[]');}catch{return[];}}
+function saveSessions(s){localStorage.setItem('bpt_v4',JSON.stringify(s));}
+function collect(){const d={};FIELDS.forEach(id=>{const el=document.getElementById(id);d[id]=el?el.value:''});return d;}
+function fill(data){
+  FIELDS.forEach(id=>{const el=document.getElementById(id);if(el&&data[id]!==undefined)el.value=data[id];});
+  calcTP();calcMR();updateFT();updateVJump();updateSprint();updateRebound();
+  updateDrib('drib30R','dribDotsR',80);updateDrib('drib30L','dribDotsL',80);
+  updateSB();
+}
+function renderSel(){
+  const sel=document.getElementById('sessionSelect');const cur=sel.value;const ss=getSessions();
+  sel.innerHTML='<option value="">— wybierz sesję —</option>';
+  ss.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(s.name||'Bez nazwy')+' · '+(s.date||'brak daty');sel.appendChild(o);});
+  if(cur!=='')sel.value=cur;
+  document.getElementById('btnDelete').style.display=ss.length?'inline-block':'none';
+  updateSB();
+}
+function saveSession(){
+  const data=collect();if(!data.name&&!data.date){toast('⚠ Uzupełnij imię lub datę');return;}
+  const ss=getSessions();ss.push(data);saveSessions(ss);renderSel();
+  document.getElementById('sessionSelect').value=ss.length-1;
+  toast('✅ Sesja zapisana!');showCmp(ss.length-1);
+}
+function loadSession(idx){
+  if(idx===''){hideCmp();return;}const ss=getSessions();
+  if(ss[idx]){fill(ss[idx]);toast('📂 Załadowano sesję');showCmp(parseInt(idx));}
+}
+function deleteSession(){
+  const sel=document.getElementById('sessionSelect');if(sel.value==='')return;
+  const ss=getSessions();ss.splice(parseInt(sel.value),1);saveSessions(ss);sel.value='';renderSel();hideCmp();toast('🗑 Usunięto');
+}
+function clearForm(){
+  FIELDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  calcTP();calcMR();updateFT();updateVJump();updateSprint();updateRebound();
+  updateDrib('drib30R','dribDotsR',80);updateDrib('drib30L','dribDotsL',80);
+  ['layRBar','layLBar','driveBar','floaterBar'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.width='0%';});
+  document.getElementById('sessionSelect').value='';hideCmp();updateSB();
+}
+function showCmp(idx){
+  const ss=getSessions();if(ss.length<2||idx===0){hideCmp();return;}
+  const cur=ss[idx],prev=ss[idx-1];const grid=document.getElementById('cmpGrid');grid.innerHTML='';
+  CMPF.forEach(f=>{
+    const cv=parseFloat(cur[f.id])||0,pv=parseFloat(prev[f.id])||0;if(!cv&&!pv)return;
+    const diff=cv-pv;const imp=f.lib?diff<0:diff>0;
+    const cls=diff===0?'eq':(imp?'up':'dn');const sign=diff>0?'+':'';const arr=diff===0?'':imp?'▲ ':'▼ ';
+    grid.innerHTML+=`<div class="ci"><div class="cil">${f.l}</div><div class="civ ${cls}">${arr}${sign}${diff%1===0?Math.abs(diff):Math.abs(diff).toFixed(2)} ${f.u}</div></div>`;
+  });
+  const r1=calcOverall(),r2=calcRatingFromData(prev);const rd=r1-r2;
+  const rcls=rd===0?'eq':(rd>0?'up':'dn');const rarr=rd===0?'':rd>0?'▲ ':'▼ ';
+  grid.innerHTML+=`<div class="ci" style="border-color:rgba(255,107,0,0.2)"><div class="cil">Overall Rating</div><div class="civ ${rcls}">${rarr}${rd>0?'+':''}${rd}</div></div>`;
+  document.getElementById('cmpWrap').classList.toggle('on',grid.innerHTML!=='');
+}
+function hideCmp(){document.getElementById('cmpWrap').classList.remove('on');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600);}
+
+// ——— INIT ———
+window.addEventListener('load',()=>{
+  // init drib dots
+  updateDrib('drib30R','dribDotsR',80);
+  updateDrib('drib30L','dribDotsL',80);
+  // init rebound
+  updateRebound();
+  // date
+  document.getElementById('date').value=new Date().toISOString().split('T')[0];
+  renderSel();calcOverall();updateSB();updateFT();
+  // hide loader
+  setTimeout(()=>{document.getElementById('loader').classList.add('hide');},900);
+});
+</script>
+</body>
+</html>

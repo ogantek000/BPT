@@ -2,7 +2,10 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d0d">
 <title>Basketball Progress Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
 <style>
@@ -255,20 +258,122 @@ textarea::placeholder{color:var(--mu2);}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--dk);border:1px solid var(--or);border-left:4px solid var(--or);color:var(--wh);padding:11px 18px;border-radius:4px;font-family:'Teko',sans-serif;font-size:0.95rem;letter-spacing:2px;text-transform:uppercase;z-index:999;opacity:0;transform:translateX(26px);transition:all .3s;pointer-events:none;box-shadow:0 4px 28px rgba(0,0,0,0.6);}
 .toast.on{opacity:1;transform:translateX(0);}
 
-/* ——— RESPONSIVE ——— */
+/* ——— iOS SAFE AREA ——— */
+body{
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  -webkit-overflow-scrolling: touch;
+  -webkit-text-size-adjust: 100%;
+}
+/* prevent zoom on input focus iOS */
+.card input,.szinp,.psel,select,textarea{font-size:max(1rem, 16px) !important;}
+.card input[type=date]{font-size:max(0.95rem,16px) !important;}
+/* fix input appearance iOS */
+input,select,textarea{-webkit-appearance:none;appearance:none;border-radius:0;}
+input[type=number]{-moz-appearance:textfield;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+/* tap highlight off */
+*{-webkit-tap-highlight-color:transparent;}
+button{-webkit-appearance:none;cursor:pointer;}
+
+/* ——— TABLETS (820px) ——— */
 @media(max-width:820px){
   .shoot-layout{grid-template-columns:1fr;}
   .hm-wrap{display:none;}
 }
+
+/* ——— LARGE PHONES (720px) ——— */
 @media(max-width:720px){
   .g4{grid-template-columns:repeat(2,1fr);}
   .sb-panels{display:none;}
-  .sb-h1{font-size:1.8rem;}
+  .sb-h1{font-size:1.7rem;}
+  .sb-eye{font-size:0.6rem;}
+  .sb-ticker{gap:14px;padding:7px 14px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+  .sb-ticker::-webkit-scrollbar{display:none;}
+  .wrap{padding:0 14px calc(env(safe-area-inset-bottom) + 60px);}
+  .ov-card{grid-template-columns:auto 1fr;gap:16px;padding:16px 18px;}
+  .ov-grade{display:none;}
+  .ov-lbl{width:70px;font-size:0.6rem;}
 }
-@media(max-width:480px){.g2,.g3{grid-template-columns:1fr;}}
+
+/* ——— PHONES (480px) ——— */
+@media(max-width:480px){
+  /* grids go single column */
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  /* 3pt grid stays 2 cols since it has layout wrapper */
+  .shoot-layout .g2{grid-template-columns:repeat(2,1fr);}
+
+  /* header compact */
+  .sb-logo{padding:0 14px;}
+  .sb-logo svg{width:36px;height:36px;}
+  .sb-h1{font-size:1.35rem;letter-spacing:1px;}
+  .sb-eye{font-size:0.55rem;letter-spacing:3px;}
+  .sb-title{padding:10px 14px;}
+  .sb-ticker{padding:6px 14px;}
+
+  /* overall card stack */
+  .ov-card{grid-template-columns:1fr;gap:14px;padding:14px 16px;text-align:center;}
+  .ov-ring{margin:0 auto;}
+  .ov-grade{display:none;}
+  .ov-bars{gap:6px;}
+  .ov-lbl{width:76px;}
+
+  /* action bar stack */
+  .ab{flex-direction:column;align-items:stretch;gap:8px;}
+  .ab-l{justify-content:stretch;}
+  .ab-l .btn{flex:1;text-align:center;}
+  .sw{justify-content:space-between;}
+  select{min-width:0;flex:1;}
+
+  /* section numbers smaller */
+  .sn{font-size:3rem;}
+  .st{font-size:1.1rem;letter-spacing:3px;padding:4px 12px;}
+
+  /* cards */
+  .card,.szc,.sprint-card,.vjump-card,.drib-card{padding:12px 13px 10px;}
+  .card input{font-size:1.9rem !important;}
+  .szinp{font-size:2rem !important;}
+
+  /* compare chips wrap */
+  .cg{gap:6px;}
+  .ci{min-width:90px;padding:7px 10px;}
+
+  /* section spacing */
+  .sec{margin-bottom:18px;}
+
+  /* toast full width bottom */
+  .toast{left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateY(20px);text-align:center;}
+  .toast.on{transform:translateY(0);}
+
+  /* drib dots smaller */
+  .drib-dot{width:6px;height:6px;}
+
+  /* sprint track taller for touch */
+  .sprint-track{height:34px;}
+  .sprint-runner{width:26px;height:26px;font-size:13px;}
+
+  /* vj visual taller */
+  .vj-visual{height:52px;}
+  .vj-bar-bg{height:52px;}
+
+  /* reb visual */
+  .reb-pip{height:22px;}
+}
+
+/* ——— VERY SMALL (375px iPhone SE) ——— */
+@media(max-width:375px){
+  .sb-h1{font-size:1.15rem;}
+  .wrap{padding:0 10px calc(env(safe-area-inset-bottom) + 50px);}
+  .ov-bars .ov-row{gap:6px;}
+  .ov-lbl{width:64px;font-size:0.58rem;}
+  .st{font-size:1rem;letter-spacing:2px;}
+}
+
 @media print{
   .ball-loader,.sb,.ab,.cmp,.toast{display:none!important;}
-  body{background:#fff!important;}
+  body{background:#fff!important;padding:0!important;}
   .card,.sumc,.szc,.hm-wrap,.ov-card,.sprint-card,.vjump-card,.drib-card{background:#fff!important;border-color:#ddd!important;backdrop-filter:none!important;}
   .card input,textarea,.suval{color:#000!important;}
 }

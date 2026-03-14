@@ -1,0 +1,15 @@
+{
+  "name": "Basketball Progress Tracker",
+  "short_name": "BPT",
+  "description": "Player Evaluation System v2 - Basketball Progress Tracker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    },
+  
+  ]
+}
